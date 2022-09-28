@@ -5,7 +5,7 @@
       <b-input-group>
         <b-form-select v-model="system" :options="types" @change="props.type=$event.type"></b-form-select>
         <b-input-group-append>
-          <b-btn @click="props.type=''">&#10005;</b-btn>
+          <b-btn @click="system=''">&#10005;</b-btn>
         </b-input-group-append>
       </b-input-group>
     </b-form-group>
@@ -30,8 +30,11 @@
     <!-- Thumbnail URL -->
     <b-form-group>
       <template #label>
-        Icon URL (<a :href="`https://github.com/webrcade-assets/webrcade-assets-${system.assets}-images/find/master`"
-          target="_blank">Webrcade Assets</a>)
+        Icon URL
+        <span v-if="props.type">
+          (<a :href="`https://github.com/webrcade-assets/webrcade-assets-${system.assets}-images/find/master`"
+            target="_blank">Webrcade Assets</a>)
+        </span>
       </template>
       <b-input-group>
         <b-form-input v-model="props.icon"></b-form-input>
@@ -81,7 +84,6 @@ export default {
             { text: "NES", value: { type: "fceux", assets: "nes" } },
             { text: "SNES", value: { type: "snes9x", assets: "snes" } },
             { text: "Nintendo 64", value: { type: "parallel-n64", assets: "n64" } },
-            { value: "", text: "" },
           ]
         },
         {
