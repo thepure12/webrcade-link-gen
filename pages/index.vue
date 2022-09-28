@@ -44,6 +44,7 @@
       </b-input-group>
       <img v-if="props.icon" class="m-1 border rounded" :src="props.icon" alt="Not found" width="100" height="100" />
     </b-form-group>
+    <!-- Preview -->
     <div class="d-flex justify-content-center">
       <div class="h3">{{props.title ? props.title : "Preview"}}</div>
     </div>
