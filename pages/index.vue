@@ -12,7 +12,7 @@
     <!-- Title -->
     <b-form-group label="Game Title">
       <b-input-group>
-        <b-form-input v-model="props.title"></b-form-input>
+        <b-form-input v-model="props.title" debounce="3000"></b-form-input>
         <b-input-group-append>
           <b-btn @click="props.title=''">&#10005;</b-btn>
         </b-input-group-append>
@@ -45,12 +45,15 @@
       <img v-if="props.icon" class="m-1 border rounded" :src="props.icon" alt="Not found" width="100" height="100" />
     </b-form-group>
     <!-- Preview -->
-    <div class="d-flex justify-content-center">
-      <div class="h3">{{props.title ? props.title : "Preview"}}</div>
-    </div>
-    <div class="d-flex justify-content-center">
-      <iframe :src="link" frameborder="0" height="300"></iframe>
-    </div>
+    <template v-if="system && props.rom">
+      <div class="d-flex justify-content-center">
+        <div class="h3">{{props.title ? props.title : "Preview"}}</div>
+      </div>
+      <div class="d-flex justify-content-center">
+        <iframe :src="link" frameborder="0" height="300"></iframe>
+      </div>
+    </template>
+    <!-- Link -->
     <b-form-group label="Standalone Link">
       <b-input-group>
         <b-form-input v-model="link" disabled></b-form-input>
@@ -79,21 +82,21 @@ export default {
         {
           label: "Nintendo",
           options: [
-            { text: "Game Boy", value: { type: "vba-m-gb", assets: "gb" } },
-            { text: "Game Boy Color", value: { type: "vba-m-gbc", assets: "gbc" } },
-            { text: "Game Boy Advance", value: { type: "vba-m-gba", assets: "gba" } },
-            { text: "NES", value: { type: "fceux", assets: "nes" } },
-            { text: "SNES", value: { type: "snes9x", assets: "snes" } },
-            { text: "Nintendo 64", value: { type: "parallel-n64", assets: "n64" } },
+            { text: "Game Boy", value: { type: "vba-m-gb", assets: "gb", app: "gb" } },
+            { text: "Game Boy Color", value: { type: "vba-m-gbc", assets: "gbc", app: "gbc" } },
+            { text: "Game Boy Advance", value: { type: "vba-m-gba", assets: "gba", app: "gba" } },
+            { text: "NES", value: { type: "fceux", assets: "nes", app: "nes" } },
+            { text: "SNES", value: { type: "snes9x", assets: "snes", app: "snes" } },
+            { text: "Nintendo 64", value: { type: "parallel-n64", assets: "n64", app: "n64" } },
           ]
         },
         {
           label: "Sega",
           options: [
-            { text: "Game Gear", value: { type: "genplusgx-gg", assets: "gg" } },
-            { text: "Genesis", value: { type: "genplusgx-md", assets: "genesis" } },
-            { text: "Master System", value: { type: "genplusgx-sms", assets: "sms" } },
-            { text: "SG-1000", value: { type: "genplusgx-sg", assets: "sg1000" } },
+            { text: "Game Gear", value: { type: "genplusgx-gg", assets: "gg", app: "gg" } },
+            { text: "Genesis", value: { type: "genplusgx-md", assets: "genesis", app: "genesis" } },
+            { text: "Master System", value: { type: "genplusgx-sms", assets: "sms", app: "sms" } },
+            { text: "SG-1000", value: { type: "genplusgx-sg", assets: "sg1000", app: "sg1000" } },
           ]
         }
       ],
@@ -102,7 +105,7 @@ export default {
   computed: {
     link() {
       let props = Buffer.from(JSON.stringify(this.props)).toString("base64")
-      return `https://play.webrcade.com/app/standalone/?app=app%2F${'gba'}%2F&props=${props}&ctx=standalone`
+      return `https://play.webrcade.com/app/${this.system.app}/?props=${props}&ctx=standalone`
     }
   },
   methods: {
