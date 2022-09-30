@@ -82,8 +82,8 @@ export default {
         {
           label: "Nintendo",
           options: [
-            { text: "Game Boy", value: { type: "vba-m-gb", assets: "gb", app: "gb" } },
-            { text: "Game Boy Color", value: { type: "vba-m-gbc", assets: "gbc", app: "gbc" } },
+            { text: "Game Boy", value: { type: "vba-m-gb", assets: "gb", app: "gba" } },
+            { text: "Game Boy Color", value: { type: "vba-m-gbc", assets: "gbc", app: "gba" } },
             { text: "Game Boy Advance", value: { type: "vba-m-gba", assets: "gba", app: "gba" } },
             { text: "NES", value: { type: "fceux", assets: "nes", app: "nes" } },
             { text: "SNES", value: { type: "snes9x", assets: "snes", app: "snes" } },
