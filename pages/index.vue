@@ -18,10 +18,25 @@
         </b-input-group-append>
       </b-input-group>
     </b-form-group>
+    <!-- Rom Set Url -->
+    <b-form-group label="Rom Set URL">
+      <b-input-group>
+        <b-form-input v-model="romSet" placeholder="https://<website>.org/details/<roms-set>"></b-form-input>
+        <b-input-group-append>
+          <b-btn @click="romSet='';roms=[]">&#10005;</b-btn>
+          <b-btn variant="primary" @click="fetchRoms">
+            <b-spinner v-if="fetchingRoms" variant="white" label="Spinning" small></b-spinner>
+            <span v-else>Go</span>
+          </b-btn>
+        </b-input-group-append>
+      </b-input-group>
+    </b-form-group>
     <!-- Rom URL -->
     <b-form-group label="Rom URL">
       <b-input-group>
-        <b-form-input v-model="props.rom"></b-form-input>
+        <v-select v-if="roms.length" v-model="props.rom" :options="roms" label="name" :reduce="rom => rom.url">
+        </v-select>
+        <b-form-input v-else v-model="props.rom"></b-form-input>
         <b-input-group-append>
           <b-btn @click="props.rom=''">&#10005;</b-btn>
         </b-input-group-append>
@@ -78,6 +93,9 @@ export default {
         rom: ""
       },
       system: "",
+      romSet: "",
+      fetchingRoms: false,
+      roms: [],
       types: [
         {
           label: "Nintendo",
@@ -118,7 +136,42 @@ export default {
         static: true,
         toaster: "b-toaster-top-center"
       })
+    },
+    async fetchRoms() {
+      if (this.romSet) {
+        this.fetchingRoms = true
+        await this.$axios.get(`https://iaapi.thepure12.repl.co/files?url=${this.romSet}`)
+          .then(res => this.roms = res.data.files)
+          .catch(err => this.$bvToast.toast("Error", {
+            title: 'There was an error fetching rom set. Please check url and try again.',
+            autoHideDelay: 5000,
+            variant: "danger",
+            static: true,
+            toaster: "b-toaster-top-center"
+          }))
+        this.fetchingRoms = false
+      }
     }
   }
 }
 </script>
+<style>
+.v-select {
+  display: flex;
+  flex-flow: column;
+  flex: 1 1 auto;
+}
+
+.vs__dropdown-toggle {
+  flex: 1 1 auto;
+  padding: 0 !important;
+}
+
+.vs__selected {
+  margin: 0 !important;
+}
+
+.vs__clear {
+  display: none;
+}
+</style>
