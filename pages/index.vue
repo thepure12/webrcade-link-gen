@@ -65,7 +65,10 @@
         <div class="h3">{{props.title ? props.title : "Preview"}}</div>
       </div>
       <div class="d-flex justify-content-center">
-        <iframe :src="link" frameborder="0" height="300"></iframe>
+        <div class="frame-container" :class="fullscreen?'fullscreen':''">
+          <iframe :src="link" frameborder="0" height="300"></iframe>
+          <b-btn @click="fullscreen=!fullscreen">&#x26F6;</b-btn>
+        </div>
       </div>
     </template>
     <!-- Link -->
@@ -96,6 +99,7 @@ export default {
       romSet: "",
       fetchingRoms: false,
       roms: [],
+      fullscreen: false,
       types: [
         {
           label: "Nintendo",
@@ -124,6 +128,12 @@ export default {
     link() {
       let props = Buffer.from(JSON.stringify(this.props)).toString("base64")
       return `https://play.webrcade.com/app/${this.system.app}/?props=${props}&ctx=standalone`
+    }
+  },
+  watch: {
+    fullscreen(val) {
+      if (val) document.body.classList.add("no-overflow")
+      else document.body.classList.remove("no-overflow")
     }
   },
   methods: {
@@ -173,5 +183,32 @@ export default {
 
 .vs__clear {
   display: none;
+}
+
+.frame-container {
+  position: relative;
+}
+
+.frame-container>button {
+  position: absolute;
+  right: 0;
+}
+
+.fullscreen,
+.fullscreen>iframe {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+}
+
+.fullscreen>button {
+  z-index: 1001;
+}
+
+.no-overflow {
+  overflow: hidden;
 }
 </style>
