@@ -3,7 +3,7 @@
     <!-- System -->
     <b-form-group label="System">
       <b-input-group>
-        <b-form-select v-model="system" :options="types" @change="props.type=$event.type"></b-form-select>
+        <b-form-select v-model="system" :options="types" @change="systemChanged"></b-form-select>
         <b-input-group-append>
           <b-btn @click="system=''">&#10005;</b-btn>
         </b-input-group-append>
@@ -15,6 +15,18 @@
         <b-form-input v-model="props.title" debounce="3000"></b-form-input>
         <b-input-group-append>
           <b-btn @click="props.title=''">&#10005;</b-btn>
+        </b-input-group-append>
+      </b-input-group>
+    </b-form-group>
+    <!-- Archives -->
+    <b-form-group v-if="system" label="Archive Search">
+      <b-progress v-if="fetchingArchives" value="100" max="100" animated></b-progress>
+      <b-input-group v-else>
+        <v-select v-model="romSet" :options="archives" label="name" :reduce="rom => rom.url"
+          @option:selected="archiveChanged">
+        </v-select>
+        <b-input-group-append>
+          <b-btn @click="romSet=''">&#10005;</b-btn>
         </b-input-group-append>
       </b-input-group>
     </b-form-group>
@@ -72,15 +84,17 @@
       </div>
     </template>
     <!-- Link -->
-    <b-form-group label="Standalone Link">
-      <b-input-group>
-        <b-form-input v-model="link" disabled></b-form-input>
-        <b-input-group-append>
-          <b-btn @click="copyLink">Copy</b-btn>
-          <b-btn :href="link" variant="primary" target="_blank">Go</b-btn>
-        </b-input-group-append>
-      </b-input-group>
-    </b-form-group>
+    <div class="fixed-bottom bg-dark text-white p-2 w-100">
+      <b-form-group class="mb-0">
+        <b-input-group>
+          <b-form-input v-model="link" disabled></b-form-input>
+          <b-input-group-append>
+            <b-btn @click="copyLink">Copy</b-btn>
+            <b-btn :href="link" variant="primary" target="_blank">Go</b-btn>
+          </b-input-group-append>
+        </b-input-group>
+      </b-form-group>
+    </div>
   </div>
 </template>
 
@@ -98,27 +112,29 @@ export default {
       system: "",
       romSet: "",
       fetchingRoms: false,
+      fetchingArchives: false,
       roms: [],
+      archives: [],
       fullscreen: false,
       types: [
         {
           label: "Nintendo",
           options: [
-            { text: "Game Boy", value: { type: "vba-m-gb", assets: "gb", app: "gba" } },
-            { text: "Game Boy Color", value: { type: "vba-m-gbc", assets: "gbc", app: "gba" } },
-            { text: "Game Boy Advance", value: { type: "vba-m-gba", assets: "gba", app: "gba" } },
-            { text: "NES", value: { type: "fceux", assets: "nes", app: "nes" } },
-            { text: "SNES", value: { type: "snes9x", assets: "snes", app: "snes" } },
-            { text: "Nintendo 64", value: { type: "parallel-n64", assets: "n64", app: "n64" } },
+            { text: "Game Boy", value: { type: "vba-m-gb", assets: "gb", app: "gba", name: "Game Boy" } },
+            { text: "Game Boy Color", value: { type: "vba-m-gbc", assets: "gbc", app: "gba", name: "Game Boy Color" } },
+            { text: "Game Boy Advance", value: { type: "vba-m-gba", assets: "gba", app: "gba", name: "Game Boy Advance" } },
+            { text: "NES", value: { type: "fceux", assets: "nes", app: "nes", name: "NES" } },
+            { text: "SNES", value: { type: "snes9x", assets: "snes", app: "snes", name: "SNES" } },
+            { text: "Nintendo 64", value: { type: "parallel-n64", assets: "n64", app: "n64", name: "Nintendo 64" } },
           ]
         },
         {
           label: "Sega",
           options: [
-            { text: "Game Gear", value: { type: "genplusgx-gg", assets: "gg", app: "gg" } },
-            { text: "Genesis", value: { type: "genplusgx-md", assets: "genesis", app: "genesis" } },
-            { text: "Master System", value: { type: "genplusgx-sms", assets: "sms", app: "sms" } },
-            { text: "SG-1000", value: { type: "genplusgx-sg", assets: "sg1000", app: "sg1000" } },
+            { text: "Game Gear", value: { type: "genplusgx-gg", assets: "gg", app: "gg", name: "Game Gear" } },
+            { text: "Genesis", value: { type: "genplusgx-md", assets: "genesis", app: "genesis", name: "Genesis" } },
+            { text: "Master System", value: { type: "genplusgx-sms", assets: "sms", app: "sms", name: "Master System" } },
+            { text: "SG-1000", value: { type: "genplusgx-sg", assets: "sg1000", app: "sg1000", name: "SG-1000" } },
           ]
         }
       ],
@@ -137,6 +153,15 @@ export default {
     }
   },
   methods: {
+    systemChanged(system) {
+      this.props.type = system.type
+      this.props.rom = ""
+      this.romSet = ""
+      this.fetchArchives(system.name)
+    },
+    archiveChanged(option) {
+      this.fetchRoms()
+    },
     copyLink() {
       navigator.clipboard.writeText(this.link)
       this.$bvToast.toast("Enjoy!", {
@@ -146,6 +171,19 @@ export default {
         static: true,
         toaster: "b-toaster-top-center"
       })
+    },
+    async fetchArchives(systemName) {
+      this.fetchingArchives = true
+      await this.$axios.get(`https://iaapi.thepure12.repl.co/archives?query=${systemName} roms`)
+        .then(res => this.archives = res.data.archives)
+        .catch(err => this.$bvToast.toast("Error", {
+          title: 'There was an error fetching archives. Please check url and try again.',
+          autoHideDelay: 5000,
+          variant: "danger",
+          static: true,
+          toaster: "b-toaster-top-center"
+        }))
+      this.fetchingArchives = false
     },
     async fetchRoms() {
       if (this.romSet) {
